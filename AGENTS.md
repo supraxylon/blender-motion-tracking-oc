@@ -1,37 +1,37 @@
-# AGENTS.md — Blender Motion Tracking Enhancement
+# AGENTS.md - Blender Motion Tracking Enhancement
+
+## Current Direction
+- Primary v1 backend: MMPose / RTMPose.
+- Architecture: external inference worker -> cached JSON -> Blender import.
+- First Blender output: pose/keypoint empties and overlays.
+- Later outputs: armature retargeting, animation curves, SAM 2 masks, ByteTrack MOT, optional WHAM 3D lift.
+- LoRATv2 is backup research for box/camera/object tracking, not the v1 pose backend.
+
+## Rules
+- Follow the current task file exactly.
+- Treat `PROJECT_SUMMARY.md`, `PLAN.md`, `documentation/PLAN.md`, `deep-research-report.md`, and `.pm/PLAN_SUMMARY.md` as planning context.
+- Do not expand scope.
+- Keep diffs small.
+- Do not add large dependencies unless the task explicitly says to.
+- Do not commit secrets.
+- Always report commands and validation.
 
 ## Repo State
-No implementation code yet. This is a **research/plan repo** for a Blender motion tracking enhancement project. All code will be written from scratch.
+- This is still mostly research/planning.
+- No production `src/` implementation exists yet.
+- No build/test/lint commands exist yet.
+- `.pm/` holds PM state, tasks, work items, and OpenCode reports.
 
-## Project Goal
-Integrate **LoRATv2** (NeurIPS 2025 Spotlight) into Blender's Video Editor motion tracker to replace the current template-based tracker. Target architecture uses LoRATv2 + PrTrack (drift correction) + ProMotion (camera solving).
-
-## Key Constraint
-This is **not a Python project**. The deliverable is a **Blender C++ add-on** (Pybind11) loading a **TorchScript/ONNX** model. Do not create Python project structure expecting pip/venv/pytest — those are for LoRATv2 baseline reproduction, not this repo.
-
-## Structure
-```
-papers/          ← Research summaries (already written)
-documentation/   ← PLAN.md (duplicated from root — consistent)
-PLAN.md          ← 18-week phased roadmap (root)
-README.md        ← Project overview
-```
-
-## OpenCode Config
-- Location: `.opencode/opencode.json`
-- Provider: Ollama local at `http://localhost:12434/engines/v1`
-- Models: `qwen3.6:35b-a3b` (default), `gemma4:31b`, `qwen3.5:9b`, `deepseek-r1:8b`
-
-## Before Working (What to Assume)
-- No build/test/lint commands exist — none to run
-- No `src/` directory — it's a planned addition
-- LoRATv2 source is external (https://github.com/hengam/lorat) — you'd need to clone it to reproduce
-- Blender add-on target follows https://developer.blender.org/ conventions
+## OpenCode
+- Server: `http://localhost:4096`
+- Use `opencode run --attach http://localhost:4096 --session ses_1e5bc0f9dffeg2J57Yu13nCMhc ...`
+- Do not use `opencode attach` for delegation; it opens the TUI.
 
 ## Garbage Collection
-- NEVER delete files directly. When something should be removed, move it to a `garbage/` folder instead. This prevents accidental data loss and makes it easy to recover.
+- Never delete files directly.
+- If something should be removed, move it to `garbage/`.
 
-## What to Produce
-- Code should go in `src/` (not yet created)
-- Paper notes live in `papers/` (already written)
-- Progress updates in `PLAN.md` checklist items
+## Where Work Goes
+- Planning summaries: root docs or `.pm/`.
+- Research notes: `papers/`.
+- Future implementation: likely `src/` or a Blender add-on package, depending on the task.

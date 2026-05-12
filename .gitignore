@@ -219,9 +219,6 @@ __marimo__/
 
 # Project-specific
 garbage/
-# Deep research noise
-deep-research-report.md
-research as text.txt
 # Blender build artifacts
 *.blend1
 *.blend2
