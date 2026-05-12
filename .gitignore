@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-specific
+garbage/
+# Deep research noise
+deep-research-report.md
+research as text.txt
+# Blender build artifacts
+*.blend1
+*.blend2
+*.blend.bak
+# Ollama models
+ollama/
