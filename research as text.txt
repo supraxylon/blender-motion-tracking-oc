@@ -1,0 +1,869 @@
+Image and Vision Computing 126 (2022) 104533
+Contents lists available at ScienceDirect
+Image and Vision Computing
+journal homepage: www.elsevier.com/locate/imavis
+Amotion model based on recurrent neural networks for visual
+object tracking
+Mohammad Shahbazib,⁎,MohammadHoseinBayata, Bahram Tarvirdizadeha
+a Advanced Service Robots (ASR) Lab, Department of Mechatronics Engineering, Faculty of New Sciences and Technologies, University of Tehran, Tehran,Iran
+b School of Mechanical Engineering, Iran University of Science and Technology, Tehran, Iran
+art i cle info
+Article history:
+Received 15 June 2022
+Accepted 7 August 2022
+Available online 14 August 2022
+Keywords:
+Single-object tracking
+Motion model
+Long short-term memory
+Recurrent neural network
+abstract
+Object tracking algorithms typically leverage on either or both appearance and motion features of target(s). It is
+common in multi-object tracking to use both features, whereas the role of motion features in single-object
+trackers has less been explored. Based on the Long Short-Term Memory (LSTM) architecture of recurrent neural
+networks, we train a novel motion model to be incorporated into the off-the-shelf single-object trackers. The
+developed model predicts the target location in each frame based on the history of processed motion features
+in a few prior frames. This aids the tracking algorithm in dynamically updating the search region location, as
+apposed to static or probabilistic region settings. We incorporate the model into three state-of-the-art
+CNN-basedtrackers, namely GOTURN, SiamFC,and DiMPandillustrate thetrackingperformanceenhancements
+on popular benchmarks. Significant improvements are achieved specially on the sequences rendering challeng
+ing situations such as Low Resolution, Out-of-Plane Rotation, Motion Blur, Fast Motion, and Occlusion. The
+motion model has a low computational cost and complies with the real-time execution of the base trackers.
+©2022ElsevierB.V.Allrightsreserved.
+1. Introduction
+Object tracking is among the most important but challenging tasks
+in computer vision [10,20,21]. With the remarkable progression in the
+deep learning algorithms specially in the form of convolutional and
+recurrent neural networks (RNNs),theuseofdeepfeatureshasincreas
+ingly been consideredin recentobjecttrackingalgorithms [17,24]. For a
+practical and real-time implementation, high accuracy and speed are
+the major expectations. The main difficulty arises from the fact that
+trackers are expected to follow a target in a 2D image plane captured
+from a 3D real scene.
+It is common for object tracking algorithms to use either or both
+appearance and motion features to track a target [2]. Because of the
+multiplicity of the objects, multi-target tracking algorithms demand
+more computations [28]. For this class of trackers, the hybrid usage of
+appearanceandmotionfeaturesiswell-establishedtoreducethesearch
+regions' size and increase theappearance modelaccuracy[24,32].How
+ever, the use of motion features in single-object tracking appears to be
+considered only optional and has less been explored in the relevant
+literature [7]. For this class of algorithms, the search region is typically
+centered at the target's location in the previous frame, albeit with a
+⁎ Corresponding author.
+E-mail address: shahbazi@iust.ac.ir (M. Shahbazi).
+https://doi.org/10.1016/j.imavis.2022.104533
+0262-8856/© 2022 Elsevier B.V. All rights reserved.
+larger scale to accommodate the target's possible movements. Since
+the location history (i.e., dynamics) of the target is not considered in
+the search region settings, the term static search region may be used.
+Thepredictionoftargetlocationbyitsmotionfeaturesbringsatleast
+two possibilities: (i) verifying a detected target, and (ii) proposing a
+moreeffectivesearchstrategywhichwerefertoitasthedynamicsearch
+region scheme. Various motion models, both linear and nonlinear, have
+been studied in the literature mostly for multi-object trackers. A large
+bodyofresearchhas focusedontheRNN-basedmodelswherecomplex
+motion features of the targets can be learned by the networks having
+certain states dealing with the history of movements. Recently, motion
+models based on the Long Short-Term Memory (LSTM) networks have
+shown increasingly promising results.
+The main motivation behind this study is to explore to what extent
+the performance of single-object trackers can be affected when the
+dynamic search region scheme through an LSTM-based motion model
+is considered. We design and train a dedicated LSTM model whose
+main function is to change the search region settings of the base track
+ing algorithm (see Fig. 1). Given themotion features of target in the last
+three frames, the model predicts the target's location in the current
+frame. This prediction sets the location of search region within which
+the tracking algorithm could have a higher chance of detecting the
+target. The model is independent of the target type and motion behav
+ior, since it saves the required motion cues in the embodied intrinsic
+parameters of the network.
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+#i-3
+#i
+#i-1
+Velocity & Acceleration Calculation 
+of the Target Movements
+LSTM-Based Motion Model
+Prediction of the Target 
+Position in the Next Frame
+Defining the Search Region
+Fig. 1. Schematic description of the proposed LSTM-based motion model (LSTM3). The
+trained model usesmotion features extracted from theoutput ofobjecttracking inrecent
+frames to predict the target location in the next frame, based on which the search region
+location of the tracker is dynamically set.
+The rest of this paper is organized as follows. In Section 2,we
+carefully review related works in the literature. Section 3 presents the
+architecture and specifications of the developed motion model, and
+details the training procedure. Evaluation metrics and benchmarks are
+discussed in Section 4.Theinfluenceof thedevelopedmodelincorpora
+tion onthetrackingperformanceisthoroughlystudiedinSection5with
+respect to the standard and custom metrics. Section 6 presents remarks
+and an ablation study on the effect of different parameters relevant
+to the performance and efficacy of the proposed model. Finally, the
+paper is concluded in Section 7.
+2. Motion models in existing object tracking algorithms
+Motion features are the basis of motion models presented in the
+literature. These features are typically determined in terms of the
+bounding box specifications. Associated with each bounding box is a
+set of primary parameters including: the center location in image
+plane coordinates (x,y), width and height as the box scale (w,h), as
+well as its surface area. Moreover, there are secondary/generated
+features like aspect ratio of the box scale and the rate of each parameter
+changes,whichgivemorerobustandinformativefeaturesbyleveraging
+historical information from prior frames.
+Linear motion models [4,31] are popular in object tracking because
+they are fast and easy toimplement, andthey do notneedtobe trained
+onenormousdata.Kalmanfilter [13]is a well-knownexamplewhichis
+a linear constant velocity model. In [4] a simple yet effective multi
+pedestrian tracker was proposed using the Kalman filter as the motion
+model to consider displacements of the targets in subsequent frames.
+The model provides an estimated location in the next frame for each
+boundingboxconsideringanumberofitsfeatures.Theobjectdetection
+frameworkFrRCNN[23]isusedtoupdatethemotionmodelparameters
+byfindingnewlocationsofthetargets.ThepopularDeepSortalgorithm
+is built on the aforementioned work where the bounding box height
+and its velocity is additionally included in the motion model [28].
+Qiu et al. [22] proposed two motion models exclusively for single
+object tracking to change the search region settings. The first one is a
+simple stochastic Random Walk model, and the second model is the
+Vector Auto-Regressive, which needs the real position of the target in
+some initial frames to train its parameters. Although the second model
+shows a performance improvement compared to the first one, its
+reliance on a relatively long sequence of target locations hinders its
+practical application. Moreover, for a considerable part of tests, nonota
+ble improvement has been achieved. We suspect that the reason is on
+the use of relatively simplistic motion models. In the present study we
+aim to develop a nonlinear deep learning-based model which is
+expected to capture higher order dynamics of the target, and its struc
+ture is not suffered by naive assumptions such as normal distribution
+for the transitioning.
+It is well-known that in challenging situations like target's complex
+movements, fast motions, and occlusion the linear models will fail
+shortly. The relevant literature of recent nonlinear motion models has
+a clear focus on machine learning. Sadeghian et al. [24] leveraged four
+LSTMs to track multiple targets by considering the history of triple
+features: appearance, motion and interaction between objects, each of
+which is handled by a specific LSTM. The outputs of these networks
+are stackedatthefourthLSTMtopredictthefinalpositionofthetargets.
+As for the motion features, only the velocity changes of the targets'
+positions in adjacent frames from the beginning are considered. More
+over, the function of motion LSTM is to check whether the current
+frame velocity complies with the “correct” trajectory, meaning that it
+dose not perform the prediction of target's velocity. The overuse of
+multiple LSTMs achieves high accuracy in tracking, but prevents the
+algorithm to be executed in real-time.
+Milanetal. [19]proposedanend-to-endmodeltoaccomplishmulti
+target tracking using both recurrent and LSTM neural networks. This
+method refrains from direct usage of the appearance features and just
+uses spatial features in tracking. The sole model input is the center
+position of the targets in image plane. Although this algorithm does
+not reach the accuracy level of detection-based methods, a high execu
+tion speed along with a decent accuracy level makes it appealing for
+practical applications.
+A recent body of research has focused on the extraction of deep
+appearance features by CNNs, which serve as spatial information
+instead of bounding box parameters. Bhat et al. [6] proposed a scene
+aware architecture that uses spatial features to maximize the target
+score among background and deceptive objects. A simple RNN is used
+to preserve temporal information in its states, corresponding to each
+elementinthevisual feature map.Wangetal. [27] introduced a motion
+enhance attention module which calculates the difference between
+deep visual features for adjacent frames as the weight to obtain better
+temporal information and motion features. Kashiani and Shokouhi
+[14] used a motion estimation network to hold the search candidates
+near the most probable target presence. Although these approaches
+do exploit spatial information, they do not give stand-alone (indepen
+dent) dynamic motion models. The spatial information used in these
+studies is limited to visual features, while other potentially beneficial
+motion cues like velocity and direction of the target movements are
+ignored. Moreover, the high calculation cost of extracting deep visual
+features limits their practicality where high speed processing is
+demanded.
+3. LSTM motion model
+This section is devoted to the presentation of the proposed motion
+model. Since the model is based on the LSTM network, the readers are
+invited to consult the relevant literature (e.g., [11,19]) for a treatment
+of its concept and architecture. In what follows a detailed illustration
+of the adopted architecture for motion modeling is presented, and the
+model training procedure is described.
+3.1. Model architecture
+ThedevelopedarchitectureistermedtheLSTM-based MotionModel
+(LSTM3).Giventhatwehavethetargetpositioninthelastthreeframes,
+detected by the base object tracking algorithm, the LSTM3 is learned on
+large data to predict the expected position of the target in the current
+frame. Based on this prediction, a more precise search region with the
+mostprobabilityofthetargetpresencewillbeobtained,thusthetracker
+could demonstrate a better performance in finding and following the
+target.
+2
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+Output
+2
+100
+LSTM
+(512)
+512
+Output
+2
+100
+LSTM
+(512)
+512
+2|4|8
+Output
+2
+100
+LSTM
+(512)
+512
+2v|4|8
+Frame(i) Frame(i+1) Frame(i+60)
+Input Input Input
+Fully-Connected Fully-Connected
+Fully-Connected Fully-Connected
+Fig. 2. LSTM3 architecture unrolled in the time. Four different input combinations can be formed by the following generated features: acceleration (A) and velocity (V) of bounding box
+(BBox) parameters, i.e., center location and scale (see also Table 1).
+The architecture of LSTM3 is depicted in Fig. 2.Themodel inputs
+are different combinations of both velocity and acceleration
+changes of the bounding box parameters, described in more details
+in Section 3.1.1. The fully connected and LSTM layers used in the
+proposed architecture are partially inspired by [1]. A primary fully
+connected layer with 100 cells prepares the inputs for the LSTM
+layer with 512 cells. Subsequently, a secondary fully connected
+layer is used to decrease the dimension of the data. The outputs
+are Δx and Δy as the center location changes of the search region
+in the current processing frame with respect to the target position
+in the previous frame. Besides, the cell and hidden states of the
+LSTM, containing the history of the target's movement, are sent to
+the subsequent frame.
+3.1.1. Input
+The primary motion features considered in our motion model com
+prise of the boundingboxcenterlocation in the image plane P =[xy]T,
+andthescalefeaturethatcontainsthewidthandheightofthebounding
+box S ¼ w h
+½ T.Weusethefirstand second order changes of these
+parameters(i.e., thegenerated features),becausethis way wegetricher
+and morestable features for network learning and inference. For a pre
+diction in the ith frame, define the velocity V (the first-order change),
+and the acceleration A (the second-order change) of the above
+defined features, with the following relations:
+VPi−1 ¼ xi−1−xi−2
+yi−1−yi−2
+; VSi−1 ¼ wi−1−wi−2
+hi−1−hi−2
+;
+APi−1 ¼ VPi−1−VPi−2; ASi−1 ¼ VSi−1−VSi−2:
+ð1Þ
+ð2Þ
+Therefore, for a prediction in thecurrentframe, theprimaryfeatures
+P and Sfromthe last three frames are required. These parameters have
+already beendeterminedbythebasetrackingalgorithm,andhence,the
+LSTM3 relies on the outputs of the tracker. In a later section, we show
+that this reliance could sometimes become problematic, and discuss a
+technique applied to remedy this issue. Finally, to conduct a compre
+hensiveevaluation,fourdifferentcombinationsofthegeneratedmotion
+features are considered for the training of LSTM3,assummarizedin
+Table 1.
+3.1.2. Output
+The output of the model is the predicted velocity changes of target
+position in the current frame VPi. It is indeed the transition of
+bounding box center location from the last to the present frame.
+Adding this to the target location in the previous frame yields a
+proposition for the center of search region in the current processing
+frame. Note that we also analyzed the effect of outputting the
+bounding box scale changes in addition to the center location changes
+in our preliminary experiments. This simply yielded no desired
+results. Perhaps, the reason is that the tested learning-based trackers
+does not admit this setting because they are trained using search
+regions with invariant sizes. Nevertheless, we suspect that such an
+output could improve the tracking performance, if a fresh tracking
+algorithm is specifically learned to handle this additional feature.
+Table 1
+Different inputs of LSTM3 for comparative evaluation.
+Symbol Input Features
+VP
+AVP
+VPS
+AVPS
+Velocity Changes of Bounding Box Center Location, VPi−1
+Acceleration and Velocity Changes of Bounding Box Center Location,
+APi−1, and VPi−1
+Velocity Changes of Bounding Box Center Location and Scale, VPi−1, and
+VSi−1
+Acceleration and Velocity Changes of Bounding Box Center Location and
+Scale, APi−1, VPi−1, ASi−1, and VSi−1
+3
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+3.2. Training procedure
+The LSTM3is trained using the combination of two popular training
+datasets: ALOV300+ [25] which is specific for single-object trackers,
+and MOT16[18] as a training set for multi-object tracking. ALOV300+
+has 315 sequences labeled every five frames, 89,364 labels in total. We
+use linear interpolation with random choices to annotate intermediate
+frames. MOT16 has 7 sequences with a total of 199,960 labels for most
+of the targets in each frame. We treat this collection as if it is a single
+object training set by separating all labels related to each target. Data
+augmentation is applied to the concatenated datasets by reversing all
+the sequences. In the next step, the motion features of the labels are
+obtained following the procedure explained in Section 3.1.1 and using
+(1) and (2). With wrapping the labels in groups of the same size, we
+finally got 511,740 training labels in total.
+The whole training procedure is done offline. However, it is needed
+for the inference of model that the particular parameters of the LSTM
+preserve the history of target motion cues and share it with the future
+frames. As such, the model updates online and adapts with the target
+movements changes. Moreover, it is common in RNN-based architec
+tures to reinitialize their parameters after an optimal time step, to
+avoid error accumulation caused by false predictions. Accordingly, we
+reset theLSTMparameters,cellandhiddenstates,afterevery60frames,
+the value determined in the empirical analysis for the best LSTM3
+performance.
+4. Evaluation procedure and metrics
+The performance of the developed motion model will be illustrated
+on three state-of-the-art single-object trackers. We first describe the
+specifications of evaluation metrics and protocols pertinent to consid
+ered benchmarks and motivate some custom-defined metrics. Then,
+the selected object trackers are shortly introduced, and the procedure
+for incorporating the motion model is discussed.
+4.1. Benchmarks
+For the empirical evaluations, two versions of the commonly
+referenced Online Object Tracking Benchmark (OTB), namely OTB50
+[29] and OTB100 [30], as well as the Visual Object Tracking Benchmark
+(VOT) [15], are considered. OTB50 and OTB100 contain 50 and 100
+challenging sequences, respectively. Each sequence is annotated
+frame-by-frame and 11 challenge attributes, described later in
+Section 5.1.2, are designated. In these benchmarks, two metrics are
+introduced for evaluation: the Center Location Error (CLE) which is
+a measure for the precision of tracking, and the Bounding Box Over
+lap, parameterized by the intersection over union (IOU) which
+determines the success rate of tracking.
+Following the protocol presented in [29,30], precision and success
+curves can be plotted using the CLE and IOU metrics, respectively. The
+precision plot of each sequence reports the percentage of frames for
+which the CLE magnitude is less than a certain threshold. Spanning
+the threshold value typically from 0 to 50 pixels, the precision curve is
+obtained for each test sequence, and the average of all sequences is
+used for the overall precision illustration. Similarly, the success curve
+is plotted by determining the percentage of frames whose IOUs are
+greater than a threshold being in the range of 0 to 1 by definition.
+The third evaluation benchmark, VOT, including 60 sequences, is
+also considered because it includes diverse challenges that are not
+similar to the training data and the OTB benchmarks. In general, VOT
+canusereset-basedandno-reset-basedapproachestoevaluatethetrack
+ing performance. Similar to OTB, in the no-reset-based approach the
+tracker does not re-initialize during the tracking, even with possibly
+wrong predictions and failures. In contrast, the reset-based approach
+re-initializes the tracker after five frames of each tracking failure. Track
+ing performance is measured by three indicators: accuracy, robustness
+and their combination, all based on IOU metric. Accuracy is the overall
+average overlap, and robustness is measured by counting the number
+of failures as zero overlap. Their combination obtained by the Expected
+Average Overlap or EAOforshort (please refer to [15] for moredetails).
+As illustrated in Section 3, the significance of the proposed motion
+model LSTM3 lies on its use of the motion history features in tracking.
+Since the VOT toolkit reports follow the reset-based scheme, every
+timeitresetsthetrackertheLSTM3isforcedtoforgetthevaluableinfor
+mation of target behaviors developed in its parameters. As such, the
+LSTM3 might perform poorly in helping the tracker to re-detect the
+target after failures using a dynamic search region. Therefore, one can
+see that the default VOT toolkit reports are not sufficiently illustrative
+of the performance enhancement by the LSTM3 addition. To compen
+sate for this shortcoming, the performanceof themotionmodel is addi
+tionally evaluated following a no-reset-based scheme.
+Three factors are considered in the no-reset-based scheme to inves
+tigate thetrackingaccuracyandrobustness:AverageOverlap(AO),zero
+IOUpercentage, and target missing-recovery. The target missing events
+occur in frames whoseIOUsare lower than a certain threshold defining
+the margin of tracking failure. Accordingly, if the IOU restarts to grow
+and becomes larger than the threshold, the target is assumed to be
+recovered, and the average number of frames between each two miss
+ing and recovery (ΔFrames) in each sequence is recorded. Robustness
+curve can then be plotted using IOU thresholds from 0 to 20 percent
+and overall average of ΔFrames for all sequences, in which the Area
+Under Curve (AUC) can summarize the tracking robustness.
+4.2. Selected trackers
+Therelevanceandefficacyoftheproposedmotionmodelcanbestbe
+demonstrated when incorporated into tracking algorithms. To this end,
+we opted three state-of-the-art single-object trackers, whose main
+characteristics are described in the following. Note that these particular
+trackers are selected because they are well-known for their real-time
+compatibility among state-of-the-art deep trackers.
+The Generic Object Tracking Using Regression Networks (GOTURN)
+[9] is a well-known deep learning-based tracker, built on CaffeNet [12],
+with a reasonable accuracy and real-time compatibility. The network
+input is the crops from two adjacent frames. The first crop is the
+detected bounding box in the first frame padded with twice of the box
+dimensions to account for the surrounding environment and possible
+movements of the target. The spatial properties of second crop is the
+same as the first, but captured from the current frame; therefore, the
+algorithm originally follows a basic static search region scheme.
+SiamFC [3], developed based on fully convolutional Siamese
+networks, is another well-known object tracker to be tested in this
+study. It is the winner of VOT17 in the task of real-time challenge [16].
+SiamFC receives a template in the first frame as its input and locates it
+in a larger segment in the subsequent frames. Here again, the search
+region location in each frame is solely determined by the location of
+the detected template in the previous frame.
+TheDiscriminativeModelPrediction(DiMP)[5],asalearning-based
+generic objecttrackingmethod,isthelasttrackerusedforevaluation.In
+contrast to generative-based trackingapproaches suchasSiamFC, DiMP
+focuses on updating the target template and utilizing the object infor
+mation by discriminating it from the background through a classifica
+tion. Its architecture utilizes two branches: classification and accurate
+bounding box prediction [8]. Like previous trackers, this architecture
+uses static search region in current frame.
+For these trackers, we use LSTM3tomodifythestrategyofsearching
+by dynamically locating the search region based on the historical
+features of the target movements. More specifically, the motion model
+receives the spatial features of the target detected by the base tracker
+in the last three frames and predicts its location in the current frame.
+The location of the search region for the tracker is updated accordingly.
+As will be shown in the next section, the performance of considered
+4
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+trackers is enhanced when implementing this dynamic search region
+scheme, thanks to the accurate predictions provided by the trained
+LSTM3.
+5. Evaluation results
+In this section theresults of all trackersevaluation on theconsidered
+benchmarks are illustrated. The first two sections are devoted to the
+evaluations on OTBs and VOT benchmarks following the default proto
+cols and toolkit. This is followed by an additional evaluation for all
+collections based on the custom metrics motivated in Section 4.1.
+5.1. Evaluation on OTB50 and OTB100
+Below the overall performance of trackers as well as their
+performance on challenges are discussed on OTB50 and OTB100
+benchmarks.
+5.1.1. Overall performance
+Using the test sequences from OTB50 and OTB100, the precision
+and success plots for the original and upgraded GOTURN trackers
+are obtained and depicted in Fig. 3. The results are obtained with
+the LSTM3oftypeAVPS(seeTable1), theoneexhibited superior per
+formance in the analysis which will be discussed in Section 6.Ascan
+beseen, precision and success rate of the original tracker are elevated
+respectively by 9% and6.2%forOTB50andby8%and6.8%forOTB100.
+Note that the reported values in the legend of precision plots are the
+scores corresponding to the threshold equal to 20 pixels. Also, AUC is
+calculated for the success curves and reported in the legend of
+respective panel. Finally, the term “Clip” in the legends refers to an
+input clipping technique addressed in Section 6.2.
+Similar evaluations are conducted for the SiamFC and DiMP trackers
+equipped with the best type of LSTM3 as mentioned earlier. Fig. 4 illus
+trates the precision and success plots of SiamFC evaluation on OTBs.
+Here again, the performance of upgraded SiamFC has significant
+improvements compared to its original version. Whereby, respectively
+for OTB50 and OTB100, 3.9% and 3.6% progression are achieved for
+precision as well as 1.9% and 1.6% for tracking success, demonstrating
+the generality of the proposed motion model. Nevertheless, for high
+magnitudes of overlap threshold in Fig. 4b and Fig. 4d, no remarkable
+improvement in the success rate is observed. This indicates that the
+LSTM3 may not be considerably effective on the SiamFC performance
+for the high precision interval. Fig. 5 shows the evaluation results on
+DiMP tracker. Like previous trackers, there is significant growth in its
+Fig. 3. (a,c) Precision and (b,d) success plots of original and upgraded GOTURN using the motion model with the best performance.
+5
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+Fig. 4. (a,c) Precision and (b,d) success plots of original and upgraded SiamFC using the motion model best performed on GOTURN evaluation.
+performance by motion model addition. Finally, Table 2 summarizes
+progression values for all trackers.
+5.1.2. Evaluation on OTB challenges
+It is of a particular interest to study the influence of the proposed
+motion model on facing the specificchallengescategorizedintheOTB
+benchmarkandreportedhereinTable3.Foreachattribute,wecompare
+the evaluation metrics of the original trackers and the ones modified by
+the best type of LSTM3, namely AVPS. Fig. 6 summarizes the whole
+results, upper panels for the GOTURN, middle panels for SiamFC and
+the lower panels for the DiMP.
+Ascanbeseen,theLSTM3contributionenhancestheperformancein
+dealing with almost all the challenge attributes for all trackers. The best
+result with theGOTURNisobtainedintheLowResolution(LR)challenge
+by 19% improvement in precision and 13% in success scores. As for the
+SiamFC, one can observe that the highest rise in precision is 7% and 4%
+improvement in the success score for the Motion Blur (MB) challenge.
+Of particular significance is the improvement achieved for the Fast
+Motion (FM) challenge, which indicates that the LSTM3 is well trained
+to accurately predict even fast and drastic motions. For the SiamFC,
+although there are a few challenges for which the contribution of the
+proposed motion model is not substantial, none of the challenge attri
+butes is negatively affected by this modification. This implies that the
+incorporation of the LSTM3 into this tracker is, at the worst scenario,
+just safe. Like other trackers, significant improvements are achieved
+for DiMP specially in Deformation (DEF) and Low Resolution (LR) chal
+lenges, up to 10% enhancement for precision and 7% for success.
+Notice the difference in the amount of enhancement offered by the
+LSTM3 when comparing the trackers on similar challenge attributes.
+This strongly relates to the capability of the tracking algorithm itself in
+handling that challenge. In this study, we limited the modification of
+the base tracking algorithm to the search region location setting. A full
+incorporation of the LSTM3 could possibly change the way a specific
+challenge is addressed by the base algorithm by jointly considering
+the appearance and motion features.
+5.2. Evaluation on VOT2018
+The VOT default toolkit (reset-based) evaluation is used for perfor
+mance illustration. The first three rows in Table 4 show the accuracy,
+robustness and their combination accordingly. As discussed earlier, a
+noreset-basedevaluation is additionally performed whosemainresults
+are summarized in thelast rowof thesame table.As can be seen,when
+this scheme is followed, the motion model better contributes in the
+performance by leveraging on the motion history endowed in its
+learned parameters.
+6
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+Fig. 5. (a,c) Precision and (b,d) success plots of original and upgraded DiMP using the motion model best performed on GOTURN evaluation.
+5.3. Robustness evaluation using custom-defined metrics
+Amoredetailedevaluationofthenoreset-basedschemeispresented
+here for all the three benchmarks and using the custom metrics defined
+in Section 4.1.
+The results of overall Average Overlap (AO), reported in Table 5
+for all benchmarks, show remarkable progression in tracking perfor
+mance by using LSTM3. Additionally, the percentages of zero overlap,
+summarized in Table 6,confirm robustness enhancement using the
+LSTM3. Here, there is an exception for SiamFC algorithm on VOT collec
+tion; however, for all the other cases considerable improvements are
+Table 2
+Percentage of enhancements for precision and success scores by LSTM3, using OTB50 and
+OTB100.
+Benchmark
+Enhancement
+GOTURN
+SiamFC
+DiMP
+Precision
+OTB50
+OTB100
+Success
+Precision
+Success
+9
+6.2
+8
+6.8
+3.9
+1.9
+3.6
+1.6
+5.4
+4.1
+1.9
+1.7
+Table 3
+The description of challenge attributes, present in the OTB sequences. We evaluate our
+motion model performance in solving these challenges using precision and success
+metrics.
+Attribute Explanation
+IV
+SV
+OCC
+DEF
+MB
+FM
+IPR
+OPR
+OV
+BC
+LR
+Illumination Variation: the illumination in the target region is
+significantly changed.
+Scale Variation: the ratio of the bounding boxes of the first frame and
+the current frame is out of the range [1/ts,ts], ts >1.
+Occlusion: the target is partially or fully occluded.
+Deformation: non-rigid object deformation.
+Motion Blur: the target region is blurred due to the motion of target or
+camera.
+Fast Motion: the motion of the ground truth is larger than tm pixels
+(tm =20).
+In-Plane Rotation: the target rotates in the image plane.
+Out-of-Plane Rotation: the target rotates out of the image plane.
+Out-of-View: some portion of the target leaves the view.
+Background Clutters: the background near the target has the similar
+color or texture as the target.
+LowResolution: the number of pixels inside the ground-truth bounding
+box is less than tr (tr = 400).
+7
+observed.Finally,Fig.7depictsrobustnesscurvesbasedontheaverage
+ΔFrames, i.e., the averagenumber of framebetweeneach target
+missing-recovery(seeSection4.1),whentheIOUthresholdisspanned
+from0to20.AUCisreportedasrobustnessscoreforeachtrackerwith
+andwithoutmotionmodel.AlsotheaverageofΔFramesforzeroIOU
+aswellasallthresholdsaredetailedinTable7.Overall,theseresults
+alsosupportthattheadditionofLSTM3tothebasetrackersimproves
+theperformanceinmostcases.
+6.Ablationstudyandremarks
+Inwhatfollowswediscussanumberofparametersinfluencingthe
+effectivenessoftheproposedmotionmodelbyusingGOTURNtracker
+asthebaselineandOTB50benchmark.
+6.1.Evaluationofmotionmodelinputs
+AsexplainedinSection3.1.1,theLSTM3isseparatelytrainedbyfour
+differentcombinationsofinputfeatures.Accordingly,thetestingsare
+performedindividuallyonallofthemforacomparativeevaluationas
+Fig.6.EvaluationofOTB50andOTB100challengesforGOTURN,SiamFC,andDiMPobjecttrackingalgorithms,usingLSTM3withthebestperformance,i.e.,modelwiththefullfeatures
+input.
+Table4
+TheVOT2018challengeresults.TheAverageOverlap(AO)isusedasthemetricofno
+reset-basedscheme.
+Tracker GOTURN GOTURN+
+LSTM3
+SiamFC SiamFC+
+LSTM3
+DiMP DiMP+
+LSTM3
+Accuracy(↑) 0.407 0.425 0.472 0.479 0.570 0.571
+Robustness(↓) 3.955 4.366 2.028 2.143 0.940 0.964
+EAO(↑) 0.136 0.119 0.172 0.181 0.370 0.375
+UnsupervisedAO
+(↑)
+0.195 0.233 0.348 0.339 0.444 0.454
+Table5
+RobustnessanalysisonOTB50,OTB100andVOT2018usingAverageOverlap(AO).
+Benchmark GOTURN GOTURN+
+LSTM3
+SiamFC SiamFC+
+LSTM3
+DiMP DiMP+
+LSTM3
+OTB50 25.92 32.08 45.18 47.07 63.17 67.24
+OTB100 28.52 35.32 50.77 52.41 67.80 69.48
+VOT2018 25.36 25.71 33.51 33.12 54.41 56.64
+M.Shahbazi,M.H.BayatandB.Tarvirdizadeh ImageandVisionComputing126(2022)104533
+8
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+Table 6
+Robustness analysis on OTB50, OTB100 and VOT2018 using percentage of zero IOUs.
+Benchmark GOTURN GOTURN+
+LSTM3
+SiamFC SiamFC+
+LSTM3
+DiMP DiMP+
+LSTM3
+OTB50
+OTB100
+VOT2018
+43.68
+39.78
+47.412
+29.88
+27.47
+47.415
+25.42
+19.61
+35.7
+21.10
+16.21
+36.97
+9.02
+6.70
+15.78
+3.75
+2.12
+11.21
+reported in Fig. 8. Overall, the tracking performance significantly en
+hances by the addition of motion model, while the difference between
+the different implementations of LSTM3 is subtle. For both metrics, the
+motion model with the full input, symbolized by AVPS in Table 1,
+shows the best results. In this case, the precision and success rate of
+the original tracker are elevated by 6.4% and 5.3%, respectively. Note
+that the success rates are determined by the AUC metric. Even for the
+motion model with a minimal input combination VP as defined in
+Table 1, one can see notable improvements in both metrics corroborat
+ing the effectiveness of the LSTM3.
+6.2. Thresholding in the model input
+The detected bounding box by the object tracker in each frame is
+used to calculate the velocity and acceleration changes of the target
+movements, which are served as the input of LSTM3. Any false or inac
+curate detection bythetrackingalgorithm,likelytooccurduetovarious
+commondisturbingsituations,willsimplyresultinamisleadingpredic
+tion by the developed motion model. Consequently, a wrong search re
+gion will be proposed to the tracker causing further tracking failures.
+To remedy this issue, we apply a simple clipping technique on the
+LSTM3 input using the moving average of the motion features. In
+doing so, we determine the overall average of each motion feature
+overthepastframes.Theninthepresentframe,everygeneratedfeature
+basedonthetrackeroutputiscomparedwithitsoverallaverage.Incase
+of exceeding a predefined threshold, the intended feature value will be
+clippedbyoneandahalfofthecorrespondingaveragevalue.Somewhat
+surprisingly, this simple clipping technique considerably improves the
+tracking performance, as demonstrated by the precision and success
+plots in Fig. 9.
+A more detailed illustration is given in Fig. 10 for a sequence of OTB
+in which the tracking behavior of upgraded GOTURN is investigated
+when the input clipping is applied. In this figure the center location of
+three boxes are plotted against the frame number, namely the target
+ground-truth, the detected bounding box by thetracker, and the search
+region which is predicted by the LSTM3. As seen in Fig. 10a, when no
+clipping is applied the target is lost by the tracker at a very early stage
+(approximately in frame #20). Consequently, the LSTM3 is provided
+by false inputs leading to conflicting search region propositions that
+Fig. 7. RobustnessanalysisofGOTURN,SiamFCandDiMPobjecttrackingalgorithms,usingLSTM3withthebestperformance,i.e.,modelwiththefullfeaturesinput,onOTB50,OTB100and
+VOT2018. The average of target missing/recovery, symbolized as ΔFrames,isdefined in Section 4.1.
+9
+causedrasticfluctuations.WhentheclippingisappliedinFig.10b,the
+amplitudeofthesebouncesissignificantlydecreased,andthetracker
+coulddetectthetargetmorepreciselyandforalongersequence.A
+stricterclippingcouldfurthereliminatethefluctuations,however,at
+theriskoflosingthetargetinfastanddrasticmotions.
+6.3.Processingspeedanalysis
+ItisimportanttostudytheinfluenceofLSTM3additiononexecution
+speedofeachtracker.Thespeedof trackers intermsofFramePer
+Second(FPS)fortheoriginalandupgradedtrackingalgorithmswith
+LSTM3arereportedinTable8.All testswererunontheIntelCore
+i7-8700XCPU@3.7GHzandanNvidiaGeForceGTX1030.Theresults
+implythatthemotionmodeladditiondoesnotaffecttheprocessing
+speedconsiderably, sincethewholetrainingprocessof themotion
+model isdoneoffline.Theaverageofrun-timeforthemotionmodel
+was28msforalltests.Notethatthecurrentimplementationrunsthe
+motionmodelontheCPU,withoutanyoptimizationandparallelization
+likeTensorRTorGPUaccelerations.Suchoptimizationscouldfurther
+improvetheprocessingspeed.
+Table7
+RobustnessanalysisonOTB50,OTB100andVOT2018usingtheaverageΔFrames.PleaserefertoSection4.1forthedefinition.
+Benchmark Threshold GOTURN GOTURN+LSTM3 SiamFC SiamFC+LSTM3 DiMP DiMP+LSTM3
+OTB50 IOU=0 23.92 3.62 34.17 21.62 31.32 22.18
+AverageofIOU=[0,0.2] 12.58 4.82 22.25 12.73 27.4 14.86
+OTB100 IOU=0 23.76 7.76 42.91 36.48 25.43 16.92
+AverageofIOU=[0,0.2] 16.27 9.81 31.01 22.98 2.53 11.50
+VOT2018 IOU=0 26.84 6.23 29.87 33.71 29.77 32.56
+AverageofIOU=[0,0.2] 17.80 11.06 23.38 29.97 22.80 21.25
+Fig.8.(a)Precisionand(b)successplotsofoverallperformancebyincorporatingLSTM3withdifferentinputstoGOTURNobjecttracker,evaluatedonOTB50usingOnePassEvaluation
+(OPE)protocolexplainedin[29].
+Fig.9.ClippingtheinputofLSTM3toattenuatetheeffectoftrackerfalsedetectionsonthemotionmodelperformance.
+M.Shahbazi,M.H.BayatandB.Tarvirdizadeh ImageandVisionComputing126(2022)104533
+10
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+Fig. 10. An example of applying clipping to LSTM3 input, tested on an OTB sequence.
+Table 8
+Speed analysis for all trackers with and without LSTM3. G, S, D, and M refer to GOTURN,
+SiamFC, DiMP, and Motion Model, respectively.
+Tracker
+G
+G+M S S+M D D+M
+FPS
+28.12
+26.13
+9.7
+9.85
+18.98
+19.8
+7. Conclusion
+AnonlinearLSTM-basedmotionmodelforvisualobjecttrackinghas
+been presented in this paper. The model is trained on a combination of
+large annotated video collections to predict the target position in each
+frame, given the target motion features in a few prior frames. We used
+this model to modify the search region settings in three state-of-the
+art single object trackers. Empirical evaluations of the modified tracking
+algorithms on the benchmarksOTB50, OTB100, andVOTdemonstratea
+significant enhancement in the tracking performance thanks to the
+accurate search region propositions by the developed motion model.
+The upgraded trackers by this motion model outperform the original
+trackers in handling almost all tracking challenges, most notably in
+Low Resolution, Out-of-Plane Rotation, Motion Blur, Fast Motion, and
+Occlusion. The presented real-time compatible model is trained end
+to-end, requires no online fine-tuning, and updates motion cues of
+arbitrary objects in its intrinsic parameters.
+This study provides concrete evidence for the relevance of motion
+models in the paradigm of single object tracking, the problem that
+was less explored in previous works. The concurrent training of the
+trackerandmotionmodel,andthecustomizationoftrackingalgorithms
+to better accommodateforthemotionmodelcapabilitiesare amongthe
+future research directions.
+Declaration of Competing Interest
+The authors declare that they have no known competing financial
+interests or personal relationships that could have appeared to influ
+ence the work reported in this paper.
+References
+[1] M. Babaee, Z. Li, G. Rigoll, Occlusion handling in tracking multiple people using rnn,
+2018 25th IEEE International Conference on Image Processing (ICIP), IEEE 2018,
+pp. 2715–2719.
+[2] B. Babenko, M.-H. Yang, S. Belongie, Visual tracking with online multiple instance
+learning, 2009 IEEE Conference on Computer Vision and Pattern Recognition, IEEE
+2009, pp. 983–990.
+[3] L. Bertinetto, J. Valmadre, J.F. Henriques, A. Vedaldi, P.H. Torr, Fully-convolutional
+siamese networks for object tracking, European Conference on Computer Vision,
+Springer 2016, pp. 850–865.
+[4] A. Bewley, Z. Ge, L. Ott, F. Ramos, B. Upcroft, Simple online and realtime tracking,
+2016 IEEE international conference on image processing (ICIP), IEEE 2016,
+pp. 3464–3468.
+[5] G.Bhat,M.Danelljan,L.V. Gool, R. Timofte,Learningdiscriminativemodel prediction
+for tracking, Proceedings of the IEEE/CVF International Conference on Computer Vi
+sion 2019, pp. 6182–6191.
+[6] G. Bhat, M. Danelljan, L.V. Gool, R. Timofte, Know your surroundings: exploiting
+scene information for object tracking, European Conference on Computer Vision,
+Springer 2020, pp. 205–221.
+[7] Q. Chu, W. Ouyang, H. Li, X. Wang, B. Liu, N. Yu, Online multi-object tracking using
+cnn-based single object tracker with spatial-temporal attention mechanism, Pro
+ceedings of the IEEE International Conference on Computer Vision 2017,
+pp. 4836–4845.
+[8] M. Danelljan, G. Bhat, F.S. Khan, M. Felsberg, Atom: accurate tracking by overlap
+maximization,Proceedingsof theIEEE/CVF ConferenceonComputerVision andPat
+tern Recognition 2019, pp. 4660–4669.
+[9] D. Held, S. Thrun, S. Savarese, Learning to track at 100 fps with deep regression net
+works, European conference on computer vision, Springer 2016, pp. 749–765.
+[10] J.F. Henriques, R. Caseiro, P. Martins, J. Batista, Exploiting the circulant structure of
+tracking-by-detection with kernels, European conference on computer vision,
+Springer 2012, pp. 702–715.
+[11] S. Hochreiter, J. Schmidhuber, Long short-term memory, Neural Comput. 9 (8)
+(1997) 1735–1780.
+[12] Y. Jia, E. Shelhamer, J. Donahue, S. Karayev, J. Long, R. Girshick, S. Guadarrama, T.
+Darrell, Caffe: convolutional architecture for fast feature embedding, Proceedings
+of the 22nd ACM international conference on Multimedia 2014, pp. 675–678.
+[13] R.E. Kalman, A New Approach to Linear Filtering and Prediction Problems, 1960.
+[14] H. Kashiani, S.B. Shokouhi, Visual object tracking based on adaptive siamese and
+motion estimation network, Image Vis. Comput. 83 (2019) 17–28.
+[15] M.Kristan, A. Leonardis, J. Matas, M. Felsberg, R. Pflugfelder, L. Cehovin Zajc, T. Vojir,
+G. Bhat, A. Lukezic, A. Eldesokey, et al., The sixth visual object tracking vot2018 chal
+lenge results, Proceedings of the European Conference on Computer Vision (ECCV)
+Workshops, 2018 , pp. 0–0.
+[16] M.Kristan, A. Leonardis, J. Matas, M. Felsberg, R. Pflugfelder, L. Cehovin Zajc, T. Vojir,
+G. Hager, A.Lukezic, A.Eldesokey, etal.,Thevisual objecttracking vot2017 challenge
+results, Proceedings of the IEEE International Conference on ComputerVision Work
+shops 2017, pp. 1949–1972.
+[17] P. Li, D. Wang, L. Wang, H. Lu, Deep visual tracking: review and experimental com
+parison, Pattern Recogn. 76 (2018) 323–338.
+[18] A. Milan, L. Leal-Taixé, I. Reid, S. Roth, K. Schindler, Mot16: A Benchmark for Multi
+Object Tracking. arXiv preprint, arXiv:1603.00831 2016.
+[19] A. Milan, S.H. Rezatofighi, A. Dick, I. Reid, K. Schindler, Online multi-target tracking
+using recurrent neural networks, Thirty-First AAAI Conference on Artificial Intelli
+gence, 2017.
+[20] H. Nam, B. Han, Learning multi-domain convolutional neural networks for visual
+tracking, Proceedings of the IEEE Conference on Computer Vision and Pattern Rec
+ognition 2016, pp. 4293–4302.
+11
+M. Shahbazi, M.H. Bayat and B. Tarvirdizadeh
+Image and Vision Computing 126 (2022) 104533
+[21] S. Pellegrini, A. Ess, K. Schindler, L. Van Gool, You’ll never walk alone: modeling so
+cial behavior for multi-target tracking, 2009 IEEE 12th International Conference on
+Computer Vision, IEEE 2009, pp. 261–268.
+[22] J. Qiu, L. Wang, Y.H. Hu, Y. Wang, Two motion models for improving video object
+tracking performance, Comput. Vis. Image Underst. 195 (2020), 102951.
+[23] S. Ren, K. He, R. Girshick, J. Sun, Faster r-cnn: towards real-time object detection
+with region proposal networks, Adv. Neural Inf. Proces. Syst. 28 (2015) 91–99.
+[24] A. Sadeghian, A. Alahi, S. Savarese, Tracking the untrackable: Learning to track mul
+tiple cues with long-term dependencies, Proceedings of the IEEE International Con
+ference on Computer Vision 2017, pp. 300–311.
+[25] A.W. Smeulders, D.M. Chu, R. Cucchiara, S. Calderara, A. Dehghan, M. Shah, Visual
+tracking: an experimental survey, IEEE Trans. Pattern Anal. Mach. Intell. 36 (7)
+(2013) 1442–1468.
+[27] Y. Wang, Z. Zhang, N. Zhang, D. Zeng, Attention modulated multiple object tracking
+with motion enhancement and dual correlation, Symmetry 13 (2) (2021) 266.
+[28] N. Wojke, A. Bewley, D. Paulus, Simple online and realtime tracking with a deep as
+sociation metric, 2017 IEEE international conference on image processing (ICIP),
+IEEE 2017, pp. 3645–3649.
+[29] Y. Wu, J. Lim, M.-H. Yang, Online object tracking: A benchmark, Proceedings of the
+IEEE Conference on Computer Vision and Pattern Recognition 2013, pp. 2411–2418.
+[30] Y. Wu, J. Lim, M.-H. Yang, Object tracking benchmark, IEEE Trans. Pattern Anal.
+Mach. Intell. 37 (9) (2015) 1834–1848.
+[31] Y.Wu,Y.Sui,G. Wang,Vision-based real-time aerial object localization and tracking
+for uav sensing system, IEEE Access 5 (2017) 23969–23978.
+[32] J. Xu, Y. Cao, Z. Zhang, H. Hu, Spatial-temporal relation networks for multi-object
+tracking, Proceedings of the IEEE/CVF International Conference on Computer Vision
+2019, pp. 3988–3998.
+12
