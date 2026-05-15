@@ -229,3 +229,6 @@ garbage/
 # Ollama models
 ollama/
 test_data/
+blender/
+
+blender/
