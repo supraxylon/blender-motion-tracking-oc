@@ -1,0 +1,45 @@
+=== Blender Runtime Probe ===
+  Time: 2026-05-12T01:51:49
+  Repo root: C:\Users\magna\Documents\projects\blender_mods\motion_tracking
+=== === === === === === ===
+
+--- [1] Repo-local blender.exe ---
+  Path: C:\Users\magna\Documents\projects\blender_mods\motion_tracking\blender\blender-5.1.1-windows-x64\blender-5.1.1-windows-x64\blender.exe
+  Exists: True
+  Size (bytes): 103.65
+  Modified: 05/12/2026 00:41:36
+  --version ERRORED: Program 'blender.exe' failed to run: The application has failed to start because its side-by-side configuration is incorrect. Please see the application event log or use the command-line sxstrace.exe tool for more detailAt C:\Users\magna\Documents\projects\blender_mods\motion_tracking\tools\probe_blender_runtime.ps1:34 char:24
++             $ver_out = & $full --version 2>&1 | Out-String
++                        ~~~~~~~~~~~~~~~~~~~~~~.
+
+  Path: C:\Users\magna\Documents\projects\blender_mods\motion_tracking\blender\blender-5.1.1\blender-5.1.1\blender.exe
+  Exists: False
+
+--- [2] Repo-local bundled Python ---
+  Python exe exists: True
+  python313.zip exists: False
+  Size (MB): 0.1
+  --version: Python 3.13.9
+  import sys: SUCCESS
+  sys.version: 3.13.9 (main, Jan 16 2026, 12:29:45) [MSC v.1944 64 bit (AMD64)]
+  import tracking_worker.cli: SUCCESS
+
+--- [3] PATH commands ---
+  python : NOT FOUND in PATH
+  python3 : NOT FOUND in PATH
+  blender : NOT FOUND in PATH
+  ffprobe : NOT FOUND in PATH
+  ffmpeg : NOT FOUND in PATH
+
+--- [4] Test data ---
+  test_data/green_field.mp4 exists: True
+  Size (MB): 282.63
+
+--- [5] Output directory ---
+  outputs/ exists: True
+    green_field_tracking.json (4.8 KB)
+    green_field_tracking_preview.svg (0.7 KB)
+
+=== Blender Runtime Probe ===
+  Probe complete.
+=== === === === === === ===

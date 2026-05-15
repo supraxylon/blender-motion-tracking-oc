@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tracking_result.schema.json",
+  "title": "Tracking Result Schema",
+  "description": "Schema for MMPose tracking results output by the external worker. Coordinates are normalized 0..1. Keys are the standard COCO 17 body joints.",
+  "type": "object",
+  "required": ["video_meta", "frames"],
+  "additionalProperties": false,
+  "properties": {
+    "video_meta": {
+      "type": "object",
+      "required": ["width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fps": {
+          "type": "number",
+          "minimum": 0.1
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "frames": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["frame_index", "width", "height", "persons"],
+        "additionalProperties": false,
+        "properties": {
+          "frame_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "persons": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["track_id", "keypoints", "score", "bbox"],
+              "additionalProperties": false,
+              "properties": {
+                "track_id": {
+                  "description": "Persistent across frames. Null means ID not yet assigned (first detection).",
+                  "oneOf": [
+                    { "type": "null" },
+                    { "type": "integer", "minimum": 0 }
+                  ]
+                },
+                "keypoints": {
+                  "description": "COCO 17 standard body joints. Always exactly 17 entries.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["x", "y", "score"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                      "y": { "type": "number", "minimum": 0, "maximum": 1 },
+                      "score": { "type": "number", "minimum": 0, "maximum": 1 }
+                    }
+                  },
+                  "minItems": 17,
+                  "maxItems": 17
+                },
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "bbox": {
+                  "type": "object",
+                  "required": ["x", "y", "width", "height"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                    "y": { "type": "number", "minimum": 0, "maximum": 1 },
+                    "width": { "type": "number", "minimum": 0, "maximum": 1 },
+                    "height": { "type": "number", "minimum": 0, "maximum": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

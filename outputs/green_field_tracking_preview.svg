@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="840" viewBox="0 0 1400 840">
+  <rect width="100%" height="100%" fill="#1a1a2e"/>
+  <text x="30" y="30" font-family="sans-serif" font-size="16" fill="#eee" text-anchor="start">Frame 0 | persons: 1 | source: C:\Users\magna\Documents\projects\blender_mods\motion_tracking\test_data\green_field.mp4</text>
+  <text x="30" y="825" font-family="monospace" font-size="10" fill="#888" text-anchor="start">Normalized coords | COCO-17 | 2 frames total</text>
+  <text x="1370" y="825" font-family="monospace" font-size="10" fill="#888" text-anchor="end">Motion Tracking Preview</text>
+  <rect x="521" y="89" width="358" height="590" fill="none" stroke="#4488ff" stroke-width="2" rx="4"/>
+    <line x1="700.0" y1="103.2" x2="661.6" y2="88.8" stroke="#cc44cc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="700.0" y1="103.2" x2="738.4" y2="88.8" stroke="#cc44cc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="661.6" y1="88.8" x2="636.0" y2="110.4" stroke="#cc44cc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="738.4" y1="88.8" x2="764.0" y2="110.4" stroke="#cc44cc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="597.6" y1="204.0" x2="572.0" y2="304.8" stroke="#4488ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="572.0" y1="304.8" x2="546.4" y2="391.2" stroke="#4488ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="802.4" y1="204.0" x2="828.0" y2="304.8" stroke="#4488ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="828.0" y1="304.8" x2="853.6" y2="391.2" stroke="#4488ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="597.6" y1="204.0" x2="802.4" y2="204.0" stroke="#4488ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="597.6" y1="204.0" x2="648.8" y2="441.6" stroke="#44bb44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="802.4" y1="204.0" x2="751.2" y2="441.6" stroke="#44bb44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="648.8" y1="441.6" x2="751.2" y2="441.6" stroke="#44bb44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="648.8" y1="441.6" x2="661.6" y2="549.6" stroke="#f08040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="661.6" y1="549.6" x2="674.4" y2="664.8" stroke="#f08040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="751.2" y1="441.6" x2="738.4" y2="549.6" stroke="#f08040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="738.4" y1="549.6" x2="725.6" y2="664.8" stroke="#f08040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="700.0" cy="103.2" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="661.6" cy="88.8" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="738.4" cy="88.8" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="636.0" cy="110.4" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="764.0" cy="110.4" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="597.6" cy="204.0" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="802.4" cy="204.0" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="572.0" cy="304.8" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="828.0" cy="304.8" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="546.4" cy="391.2" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="853.6" cy="391.2" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="648.8" cy="441.6" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="751.2" cy="441.6" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="661.6" cy="549.6" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="738.4" cy="549.6" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="674.4" cy="664.8" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <circle cx="725.6" cy="664.8" r="4.0" fill="white" stroke="#fff" stroke-width="1.2"/>
+    <text x="700" y="79" font-family="sans-serif" font-size="13" fill="#4488ff" font-weight="bold" text-anchor="middle">T0</text>
+    <text x="688" y="93" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">nose</text>
+    <text x="650" y="79" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_eye</text>
+    <text x="726" y="79" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_eye</text>
+    <text x="624" y="100" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_ear</text>
+    <text x="752" y="100" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_ear</text>
+    <text x="586" y="194" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_shoulder</text>
+    <text x="790" y="194" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_shoulder</text>
+    <text x="560" y="295" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_elbow</text>
+    <text x="816" y="295" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_elbow</text>
+    <text x="534" y="381" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_wrist</text>
+    <text x="842" y="381" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_wrist</text>
+    <text x="637" y="460" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_hip</text>
+    <text x="739" y="460" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_hip</text>
+    <text x="650" y="568" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_knee</text>
+    <text x="726" y="568" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_knee</text>
+    <text x="662" y="655" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">left_ankle</text>
+    <text x="714" y="655" font-family="monospace" font-size="9" fill="#ccc" text-anchor="start">right_ankle</text>
+</svg>

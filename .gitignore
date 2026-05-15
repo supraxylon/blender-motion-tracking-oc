@@ -219,9 +219,13 @@ __marimo__/
 
 # Project-specific
 garbage/
+.codex/
+.pm/opencode-home/
+.pm/opencode-config/
 # Blender build artifacts
 *.blend1
 *.blend2
 *.blend.bak
 # Ollama models
 ollama/
+test_data/

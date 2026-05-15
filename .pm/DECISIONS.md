@@ -80,3 +80,18 @@ Open-source marketplace add-on vs. paid release is undefined. No source plan add
 
 ### SMPL licensing path
 WHAM requires SMPL/SMPLify registration. It is unclear whether a legal/compliance path exists. If blocked, WHAM should be replaced with an alternative (e.g., VideoPose3D).
+
+## ADR-5: Keep Backend Registry Lightweight
+
+**Status:** **Accepted**
+
+**Decision:**  
+`tracking_worker` uses a small backend registry with lazy backend loading. The fixture backend stays runnable without heavy dependencies, while `rtmpose` is recognized and returns a clear missing-dependency error until the external ML environment is installed.
+
+**Rationale:**  
+The project needs real RTMPose/MMPose inference next, but the repo should not silently install torch/MMCV/MMPose or make the working fixture path depend on those packages.
+
+**Consequences:**
+- `--backend fixture` remains the safe validation path.
+- `--backend rtmpose` is now a planned, testable CLI surface.
+- Real inference work can happen behind the backend boundary in WI-007.

@@ -9,7 +9,9 @@
 
 ## Rules
 - Follow the current task file exactly.
-- Treat `PROJECT_SUMMARY.md`, `PLAN.md`, `documentation/PLAN.md`, `deep-research-report.md`, and `.pm/PLAN_SUMMARY.md` as planning context.
+- If acting as PM/orchestrator, read `.pm/PM_HANDOFF.md` before planning or delegation.
+- If interacting with OpenCode, read `.pm/skills/opencode-orchestrator/SKILL.md`.
+- Treat `docs/PROJECT_VISION.md`, `PLAN.md`, `documentation/PLAN.md`, `deep-research-report.md`, and `.pm/PLAN_SUMMARY.md` as planning context.
 - Do not expand scope.
 - Keep diffs small.
 - Do not add large dependencies unless the task explicitly says to.
@@ -17,8 +19,7 @@
 - Always report commands and validation.
 
 ## Repo State
-- This is still mostly research/planning.
-- No production `src/` implementation exists yet.
+- This now has an MVP scaffold: cached JSON schema, external worker fixture, preview tool, and Blender add-on skeleton.
 - No build/test/lint commands exist yet.
 - `.pm/` holds PM state, tasks, work items, and OpenCode reports.
 

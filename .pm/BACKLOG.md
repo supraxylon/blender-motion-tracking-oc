@@ -4,6 +4,23 @@
 
 ---
 
+## Execution Status - 2026-05-12
+
+Completed:
+- Cached JSON schema, sample data, and validator.
+- Blender add-on skeleton for cached pose import.
+- External worker CLI with fixture backend.
+- MVP evaluation pack with SVG preview and runtime probe.
+- Backend registry with safe `rtmpose` placeholder.
+- Unified project vision and PM handoff docs.
+
+Current next action:
+- Run `WI-007-A`: choose the external Python environment path for real RTMPose/MMPose inference.
+
+Do not install torch/MMPose/OpenCV until the user approves the WI-007-B install approach.
+
+---
+
 ## Phase M1 — Research & Backend Selection (Weeks 1–2)
 
 | #  | Item                                                                                     | Notes                                                    |
